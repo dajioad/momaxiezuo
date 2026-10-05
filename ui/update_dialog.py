@@ -125,7 +125,7 @@ class UpdateDialog(QDialog):
     def _open_download(self):
         """下载更新包到用户「下载」文件夹。
 
-        优先从 download_url 直接下载（走自己服务器）；
+        优先从 download_url 直接下载（当前托管在 Gitee 发行版附件）；
         没有 download_url 时退化为打开 download_page。
         """
         url = self._info.get("download_url") or ""

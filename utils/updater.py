@@ -20,8 +20,11 @@ from .logger import get_logger
 logger = get_logger()
 
 # ============ 你只需要改这里 ============
-PRIMARY_SOURCE = "http://39.96.64.137/latest.json"
-MIRROR_SOURCE = "https://gitee.com/momaxiezuo/ink-code-writing/raw/master/latest.json"
+# 2026-10 起更新通道迁移到 Gitee（自有服务器即将下线）：
+# Gitee 为主源；旧服务器保留为过渡期备用，确认下线后可把这一行删掉。
+PRIMARY_SOURCE = "https://gitee.com/momaxiezuo/ink-code-writing/raw/master/latest.json"
+LEGACY_SERVER_SOURCE = "http://39.96.64.137/latest.json"
+MIRROR_SOURCE = LEGACY_SERVER_SOURCE
 # ======================================
 
 FETCH_TIMEOUT = 5.0
