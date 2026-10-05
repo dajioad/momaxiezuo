@@ -1,0 +1,21 @@
+# 墨码写作 - 运行时依赖（精简列表）
+#
+# 安装： pip install -r requirements.txt
+# 打包： 见 requirements-dev.txt
+
+# === UI 框架 ===
+PySide6==6.11.1
+shiboken6==6.11.1
+QtAwesome==1.4.2
+
+# === 中文处理（一致性检查的拼音通道）===
+pypinyin==0.55.0
+
+# === 图片处理（作品封面上传/缩放）===
+Pillow==12.2.0
+
+# === 加密（AI Key 加密存储）===
+cryptography==48.0.0
+
+# === AI 接口（DeepSeek 等，OpenAI 兼容协议）===
+requests==2.33.1

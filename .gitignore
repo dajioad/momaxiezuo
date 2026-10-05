@@ -1,0 +1,35 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+
+# ===== 打包构建产物（PyInstaller / Inno Setup）=====
+build/
+dist/
+installer_output/
+
+# ===== 日志与临时冒烟脚本 =====
+*.log
+_smoke_*.py
+smoke_out.txt
+smoke_err.txt
+
+# ===== 本地素材暂存目录（26MB 原始立绘；运行时素材在 ui/pet/）=====
+新建文件夹/
+
+# ===== IDE / 工具本地状态 =====
+.trae/
+
+# ===== 用户数据（防止误提交本地作品、密钥与统计）=====
+data/
+Storage/
+works/
+ai.dat
+salt.bin
+config.ini

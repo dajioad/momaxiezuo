@@ -1,0 +1,15 @@
+ # 墨码写作 - 开发与打包依赖
+#
+# 普通用户不需要安装本文件；只有从源码开发或自行打包时才需要。
+# 安装： pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# === 打包 ===
+pyinstaller==6.20.0
+pyinstaller-hooks-contrib==2026.5
+altgraph==0.17.5
+pefile==2024.8.26
+
+# === 纯逻辑回归测试 ===
+pytest>=8.0

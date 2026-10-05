@@ -1,0 +1,175 @@
+墨码写作 - 最终用户许可协议
+================================
+
+版权所有 (c) 2026 墨码写作开发者
+保留所有权利。
+
+------------------------------------------------------------------------
+一、授权范围
+------------------------------------------------------------------------
+
+本软件（"墨码写作"）为闭源免费软件，全部功能免费开放，
+无激活码、无设备绑定、无功能分级。软件持续开发依赖用户的
+自愿赞助（爱发电：https://afdian.com/a/xiaoyu_tool ），
+赞助不构成授权费用，也不影响任何功能的使用。
+
+1.1 使用许可
+  您可以免费、无限期、在任意数量的个人设备上使用本软件的
+  全部功能，用于个人或商业用途。
+
+1.2 禁止行为（仅限本软件的自有代码）
+  以下限制仅适用于本软件的自有代码部分（不含第三方开源组件，
+  第三方组件的权利见第二章、第三章）：
+
+  · 不得对本软件的自有代码进行反编译、反汇编或逆向工程；
+  · 不得修改、二次分发、转售本软件，或将本软件作为服务对外提供；
+  · 不得移除或篡改本软件中的版权声明。
+
+1.3 允许行为
+  · 在您自己的多台设备间同步作品数据（数据目录为纯文本/JSON，
+    可放入 OneDrive、坚果云等同步目录）；
+  · 使用本软件创作的作品，其著作权完全归您所有，
+    本软件不对您的创作内容主张任何权利。
+
+------------------------------------------------------------------------
+二、LGPLv3 组件替换权（重要）
+------------------------------------------------------------------------
+
+本软件包含以 GNU Lesser General Public License v3.0 (LGPLv3)
+授权发布的 Qt / PySide6 组件。LGPLv3 第 4 条要求我们明确告知您
+享有替换这些组件的权利，具体如下：
+
+2.1 涉及的 LGPLv3 组件
+  · PySide6      —— https://www.qt.io/qt-for-python
+  · shiboken6    —— https://www.qt.io/qt-for-python
+  · Qt 相关动态库（Qt6*.dll 等）
+
+2.2 您享有的权利
+  根据 LGPLv3 第 4(d) 条，您有权使用自行修改（或替换）过的
+  PySide6 / shiboken6 / Qt 版本替换本软件分发的版本。这些组件
+  以动态链接方式使用，本软件并不阻止或限制您行使这一权利。
+
+2.3 替换方法
+  本软件使用 PyInstaller 打包为绿色便携版，LGPLv3 组件位于
+  程序目录的 _internal\ 子目录下：
+
+      墨码写作\
+      ├── 墨码写作.exe
+      └── _internal\
+          ├── PySide6\               ← 替换此目录下的 .pyd / .dll
+          ├── shiboken6\             ← 替换此目录下的 .pyd / .dll
+          └── ...
+
+  替换步骤：
+    (1) 从 Qt 官方渠道下载所需版本的 PySide6 wheel：
+        https://download.qt.io/official_releases/QtForPython/
+    (2) 解压 wheel（本质是 zip），取出其中的 PySide6 / shiboken6
+        目录下的二进制文件（.pyd / .dll）；
+    (3) 用这些文件覆盖 _internal\ 下同名文件；
+    (4) 重新启动本软件即可生效。
+
+  若替换后软件无法启动，说明替换版本与主程序不兼容，
+  恢复原文件即可，不影响您的作品数据。
+
+2.4 获取对应源码
+  PySide6 / shiboken6 的完整源码可在上述 Qt 官方地址获取；
+  本软件对上述组件未做任何修改。
+
+------------------------------------------------------------------------
+三、第三方开源组件清单
+------------------------------------------------------------------------
+
+本软件包含下列开源组件。各组件的完整许可证文本可在其官方仓库
+或通过所附链接获取，此处仅作声明与致谢。
+
+【核心框架 / UI】
+  · PySide6 (LGPLv3)
+    https://www.qt.io/qt-for-python
+  · shiboken6 (LGPLv3)
+    https://www.qt.io/qt-for-python
+  · QtAwesome (MIT)
+    https://github.com/spyder-ide/qtawesome
+  · QtPy (MIT)
+    https://github.com/spyder-ide/qtpy
+  · Font Awesome Free (CC BY 4.0 / SIL OFL 1.1 / MIT)
+    https://fontawesome.com/
+
+【网络 / 加密】
+  · requests (Apache License 2.0)
+    https://requests.readthedocs.io/
+  · urllib3 (MIT)
+    https://github.com/urllib3/urllib3
+  · certifi (MPL-2.0)
+    https://certifi.io/
+  · charset_normalizer (MIT)
+    https://github.com/jawah/charset_normalizer
+  · idna (BSD-3-Clause)
+    https://github.com/kjd/idna
+  · cryptography (Apache License 2.0 / BSD-3-Clause)
+    https://cryptography.io/
+
+【图像处理】
+  · Pillow (HPND — Historical Permission Notice and Disclaimer)
+    https://python-pillow.org/
+
+【中文处理】
+  · pypinyin (MIT)
+    https://github.com/mozillazg/python-pinyin
+
+【间接依赖】
+  以下组件由上述库间接引入，均为宽松许可证：
+  · cffi (MIT)
+    https://cffi.readthedocs.io/
+  · pycparser (BSD-3-Clause)
+    https://github.com/eliben/pycparser
+
+【打包工具（仅构建期使用，产物内不含其源码）】
+  · PyInstaller (GPL-2.0-with-exception)
+    https://pyinstaller.org/
+    说明：PyInstaller 采用 GPL-2.0 许可证并附带明确的例外条款，
+    该条款允许使用 PyInstaller 打包的应用程序以任意许可证分发。
+    本软件打包后的 exe 不受 GPL 约束。
+  · pyinstaller-hooks-contrib (Apache-2.0 / GPL-2.0)
+    https://github.com/pyinstaller/pyinstaller-hooks-contrib
+  · altgraph (MIT)
+    https://github.com/ronaldoussoren/altgraph
+  · pefile (MIT)
+    https://github.com/erocarrera/pefile
+  · pywin32-ctypes (BSD-3-Clause)
+    https://github.com/enthought/pywin32-ctypes
+
+若上述清单存在遗漏或版本信息错误，欢迎通过下方联系方式告知，
+我们会在下一个版本中更正。
+
+------------------------------------------------------------------------
+四、免责声明
+------------------------------------------------------------------------
+
+4.1 本软件按"现状"提供，不附带任何明示或暗示的担保，
+    包括但不限于对适销性、特定用途适用性的担保。
+
+4.2 尽管本软件在设计上采用了原子写入、崩溃恢复草稿、历史快照
+    等多重数据保护机制，我们仍强烈建议您：
+      · 定期使用「作品 → 备份所有作品」将稿件导出为 zip；
+      · 将作品数据目录放入云同步目录（OneDrive / 坚果云等）。
+
+4.3 在适用法律允许的最大范围内，作者不对因使用或无法使用本软件
+    而导致的任何直接或间接损失（包括但不限于稿件丢失、数据损坏、
+    商业利润损失）承担责任。若您不接受本条款，请停止使用本软件。
+
+4.4 使用本软件的 AI 功能时，您的输入内容会经由网络发送至您所
+    选择的服务商（如 DeepSeek）。本软件不存储、不转发、不经手
+    这些请求内容，相关隐私政策以服务商官方声明为准。
+
+------------------------------------------------------------------------
+五、联系方式
+------------------------------------------------------------------------
+
+  QQ      2818491757
+  微信    RaiCoutry
+  邮箱    ccccccc0819@163.com
+  Issue   https://gitee.com/momaxiezuo/ink-code-writing/issues
+
+------------------------------------------------------------------------
+© 2026 墨码写作 - All Rights Reserved.
+------------------------------------------------------------------------
