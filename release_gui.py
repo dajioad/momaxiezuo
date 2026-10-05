@@ -370,6 +370,7 @@ class ReleaseWorker(QThread):
         if r.status_code == 200:
             existing = {a.get("name") for a in r.json()}
 
+        import time
         for path in files:
             self._check_stop()
             name = path.name
@@ -377,17 +378,37 @@ class ReleaseWorker(QThread):
                 self.log.emit(f"  跳过（附件已存在）: {name}")
                 continue
             size_mb = path.stat().st_size / (1024 * 1024)
-            self.log.emit(f"  上传 {name}（{size_mb:.1f} MB）…")
-            with open(path, "rb") as f:
-                r = self._api(
-                    "POST", f"releases/{release_id}/attach_files",
-                    data={"access_token": self.token, "name": name},
-                    files={"file": (name, f, "application/octet-stream")},
-                    timeout=600)
-            if r.status_code not in (200, 201):
-                raise Exception(f"上传 {name} HTTP {r.status_code}: "
-                                f"{r.text[:300]}")
-            self.log.emit(f"    OK -> {r.json().get('browser_download_url')}")
+            # 大文件上传偶发断连（Response ended prematurely 等），
+            # 逐文件重试 3 次，指数退避；成功即止。
+            last_err = ""
+            for attempt in range(1, 4):
+                self._check_stop()
+                self.log.emit(
+                    f"  上传 {name}（{size_mb:.1f} MB）"
+                    + (f"第 {attempt} 次尝试…" if attempt > 1 else "…"))
+                try:
+                    with open(path, "rb") as f:
+                        r = self._api(
+                            "POST",
+                            f"releases/{release_id}/attach_files",
+                            data={"access_token": self.token, "name": name},
+                            files={"file": (name, f,
+                                            "application/octet-stream")},
+                            timeout=600)
+                    if r.status_code in (200, 201):
+                        self.log.emit(
+                            f"    OK -> {r.json().get('browser_download_url')}")
+                        last_err = ""
+                        break
+                    last_err = f"HTTP {r.status_code}: {r.text[:300]}"
+                except requests.RequestException as e:
+                    last_err = str(e)
+                if attempt < 3:
+                    wait = 5 * attempt
+                    self.log.emit(f"    连接中断（{last_err}），{wait}s 后重试")
+                    time.sleep(wait)
+            if last_err:
+                raise Exception(f"上传 {name} 重试 3 次仍失败：{last_err}")
 
     # ---------- 主流程 ----------
     def run(self):
