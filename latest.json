@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "pub_date": "2026-10-05",
-  "notes": "首个正式版本",
+  "notes": "使用gitee更新",
   "min_supported": "1.0.0",
-  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.0/update.zip",
+  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.1/update.zip",
   "download_page": "https://gitee.com/momaxiezuo/ink-code-writing/releases",
-  "sha256": "61f91ff00567f2b75c18539fca6781ad694ae8cf576a0ed54162a30a24e3e1bb",
-  "signature": "CVQAj6CA3jhCeDnDJ3Uj2JVsN9y/er8KLTPcXdMlX9iKh9ShiI64avtb7ZzdFn45yDB+MCHjczyRFMcz4WhHWOTDQMhjQerSF3AJJT38MsHl5v/M6UntkFCBJoqQcJzABVgowj1G+8B62MySB/EVMgCc+gPC2tlSYMFaag2vatrh7P+mnFVCQfXX70oeBFjThxguBUz/Qy+5UmPqEtLu8uEHHcE7OL1pOPUz0UHngrU23R7DEEvmfRVtU27OnUsh1Xs660ZOLS7DW8n2qShO3l6HQv+0BZXRGPS37OFFwLz78uoXmn4UXLJjLR8sIc/SGyCR9+hwym/0v7uKUx/DBg=="
+  "sha256": "4489df8eff34a1dd047653877ddedefe17e7134c2fa7ec6d7cb5617742e6f19c",
+  "signature": "S6Ifozws++3vTqQp+ZLlOHu2DAz0bSCnXNulg/mWc2O0WVYMI5w5dwnmpmabXlMfWozwhaLUfDpL8kwmCX3Aneg39o6cTqOBqMTP/eNn6VRRM6xJMcLgKtlXBRKfLvS9yUafTFJ+tRjcpz3kZASZymEs8kUYdQ70D+QZEVvvbEmVepQIGEJbtpbgeg6voDcR9sPkjodkzu60qW4DiZLxlAmfww1EX4Qh0DRRn4i69Be0EX/dSEdRaPuzXZVwg8pNerMgF0jwD2S4NV95aQR9Y0+pNm/jRSDLPsOdT43MqhWWqmco+VS8iK1b745mDn82KrTvYRlg1BmMILZr6pPU3Q=="
 }
