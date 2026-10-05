@@ -1,10 +1,10 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "pub_date": "2026-10-05",
-  "notes": "使用gitee更新",
+  "notes": "修复启动时命令行黑窗一闪的问题",
   "min_supported": "1.0.0",
-  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.1/update.zip",
+  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.2/update.zip",
   "download_page": "https://gitee.com/momaxiezuo/ink-code-writing/releases",
-  "sha256": "4489df8eff34a1dd047653877ddedefe17e7134c2fa7ec6d7cb5617742e6f19c",
-  "signature": "S6Ifozws++3vTqQp+ZLlOHu2DAz0bSCnXNulg/mWc2O0WVYMI5w5dwnmpmabXlMfWozwhaLUfDpL8kwmCX3Aneg39o6cTqOBqMTP/eNn6VRRM6xJMcLgKtlXBRKfLvS9yUafTFJ+tRjcpz3kZASZymEs8kUYdQ70D+QZEVvvbEmVepQIGEJbtpbgeg6voDcR9sPkjodkzu60qW4DiZLxlAmfww1EX4Qh0DRRn4i69Be0EX/dSEdRaPuzXZVwg8pNerMgF0jwD2S4NV95aQR9Y0+pNm/jRSDLPsOdT43MqhWWqmco+VS8iK1b745mDn82KrTvYRlg1BmMILZr6pPU3Q=="
+  "sha256": "a72cff6710458d2be0d80c16530f704774dea43582719548a4706c2db9b92181",
+  "signature": "CVYZIBczN1hSJhc6JPuFMnjaVXODgtKPF6OEHwCsjgV2DabBepoeqNWLK2FW5orTu4fwEsPUT/H9H9HNhx9/uE/2Ja1NSpzlvFMuBQTWgw6efgEftnQEo7iOY0qUB1B7IVXLFzUfxKEcPq3Mhpcz/D8pVLAoNj5EGALPIPL9neV+4KRvxF5aDEAKlwmGDWrq5zY3wW29qUweqxejRzfwz3yKOOmNpCuHX/+zX6IUSjqfvSDQEqtpgAqFrbg2ZzPikTRhRzlFS8GbYPXDhvnwmMj79kyJtD13rqVsOIx8ofgOB8RxX6dndGtjn8bTPEnAKfloSRs/3KJVS9E/b7p7Bw=="
 }

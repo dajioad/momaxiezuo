@@ -12,7 +12,7 @@ from PySide6.QtGui import QIcon
 
 # 应用名称与版本
 APP_NAME = "墨码写作"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 # 爱发电赞助主页（软件完全免费，赞助为自愿支持）
 AFDIAN_HOME = "https://afdian.com/a/xiaoyu_tool"
