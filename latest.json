@@ -1,10 +1,10 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "pub_date": "2026-10-05",
-  "notes": "修复启动时命令行黑窗一闪的问题",
+  "notes": "## v1.0.3 更新内容\n\n### 修复\n1. **章节拆分后撤回出错（重要）**\n   修复「从光标处拆分为新章节」后，在章节树按 Ctrl+Z 撤回，可能错误回退到更早的合并操作，导致拆分出的新章节内容被冲掉、章节顺序错位或内容重复的问题。\n\n2. **拆分操作现在也可以撤销**\n   从光标拆分章节后，在章节树按 Ctrl+Z 即可一键还原：原文写回原章、拆分出的新章自动删除。拆分成功后会有提示。\n\n3. **一致性检查：已忽略组合可在软件内管理**\n   此前点了「忽略」的疑似同人不同名组合，只能去作品目录手动删 json。\n   现在一致性检查对话框底部新增「管理已忽略」：\n   - 查看全部已忽略组合（按钮上实时显示数量）\n   - 单条「恢复」，或「恢复全部」（带二次确认）\n   - 本次刚忽略的条目恢复后立即重新显示，无需重新检查\n   - 检查结果为空时也能进入管理\n\n### 说明\n- 本次为问题修复版本，无数据格式变化，可直接覆盖安装；\n- 如更新后遇到异常，可在「设置 → 备份」中使用自动备份恢复。",
   "min_supported": "1.0.0",
-  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.2/update.zip",
+  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.3/update.zip",
   "download_page": "https://gitee.com/momaxiezuo/ink-code-writing/releases",
-  "sha256": "a72cff6710458d2be0d80c16530f704774dea43582719548a4706c2db9b92181",
-  "signature": "CVYZIBczN1hSJhc6JPuFMnjaVXODgtKPF6OEHwCsjgV2DabBepoeqNWLK2FW5orTu4fwEsPUT/H9H9HNhx9/uE/2Ja1NSpzlvFMuBQTWgw6efgEftnQEo7iOY0qUB1B7IVXLFzUfxKEcPq3Mhpcz/D8pVLAoNj5EGALPIPL9neV+4KRvxF5aDEAKlwmGDWrq5zY3wW29qUweqxejRzfwz3yKOOmNpCuHX/+zX6IUSjqfvSDQEqtpgAqFrbg2ZzPikTRhRzlFS8GbYPXDhvnwmMj79kyJtD13rqVsOIx8ofgOB8RxX6dndGtjn8bTPEnAKfloSRs/3KJVS9E/b7p7Bw=="
+  "sha256": "be42129b89c2f7c2bf0e6737d0d088f3c2d3bfd6a59635fac261e508eb4cb9be",
+  "signature": "slhAzrBdhtmxXTanBqC3lQHjJfcbHQUDW0o0NkLquYiKWJHvf7S+/2Yg7lIUANvwm8ECRjQG3pgfxX0Z1Q1BjuxU7CX03xI7Sh0eya6EGAJhe5XJEkBEJrJWjMtJ1f2ccH0SY5kmZ8JKJLEX5gTVAdKb3jTTRdF3qdEDpdHYcp6/CLxSaW6HU7+//Oz4l32TWvveWhO2AioiiQB55dvxcM2PZNtMDOYwjpzYHY83wkF1vJXqjy4j5cw7lqHggFOyQ8GHLrr2/xZGBSGQSMzoyk4Ai22yHqfVPW249msQaCBGW84Rg3rJHsDqkB3vwp1Hml+BX6oimixeqliRikDr2w=="
 }
