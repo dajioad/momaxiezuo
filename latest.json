@@ -1,7 +1,10 @@
 {
-  "version": "1.0.1",
-  "pub_date": "2026-9-16",
+  "version": "1.0.0",
+  "pub_date": "2026-10-05",
+  "notes": "首个正式版本",
   "min_supported": "1.0.0",
-  "notes": "正式版本",
-  "download_page": "https://gitee.com/momaxiezuo/ink-code-writing/releases"
+  "download_url": "http://39.96.64.137/downloads/update.zip",
+  "download_page": "http://39.96.64.137",
+  "sha256": "61f91ff00567f2b75c18539fca6781ad694ae8cf576a0ed54162a30a24e3e1bb",
+  "signature": "CVQAj6CA3jhCeDnDJ3Uj2JVsN9y/er8KLTPcXdMlX9iKh9ShiI64avtb7ZzdFn45yDB+MCHjczyRFMcz4WhHWOTDQMhjQerSF3AJJT38MsHl5v/M6UntkFCBJoqQcJzABVgowj1G+8B62MySB/EVMgCc+gPC2tlSYMFaag2vatrh7P+mnFVCQfXX70oeBFjThxguBUz/Qy+5UmPqEtLu8uEHHcE7OL1pOPUz0UHngrU23R7DEEvmfRVtU27OnUsh1Xs660ZOLS7DW8n2qShO3l6HQv+0BZXRGPS37OFFwLz78uoXmn4UXLJjLR8sIc/SGyCR9+hwym/0v7uKUx/DBg=="
 }
