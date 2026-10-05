@@ -319,6 +319,134 @@ class _PairCard(QFrame):
         )
 
 
+class _IgnoredManagerDialog(QDialog):
+    """已忽略组合管理：查看 / 逐条恢复 / 全部恢复。
+
+    此前用户只能去作品目录手改 consistency_ignored.json。
+    exec 结束后 self.restored 里放本次恢复的 (anchor, variant) 集合，
+    供主对话框把对应卡片重新显示出来。
+    """
+
+    def __init__(self, work, theme: dict, parent=None):
+        super().__init__(parent)
+        self._work = work
+        self._theme = theme or {}
+        self.restored = set()
+        self._rows = []  # [(key, row_widget)]
+        self.setWindowTitle("已忽略的组合")
+        self.setMinimumSize(560, 480)
+        self._build_ui()
+
+    def _build_ui(self):
+        root = QVBoxLayout(self)
+        root.setContentsMargins(16, 16, 16, 12)
+        root.setSpacing(10)
+
+        tip = QLabel(
+            "这些组合以后检查时不会再报告。\n"
+            "点「恢复」可让某一组在下次检查时重新出现。"
+        )
+        tip.setWordWrap(True)
+        root.addWidget(tip)
+
+        self.count_lab = QLabel()
+        root.addWidget(self.count_lab)
+
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.NoFrame)
+        container = QWidget()
+        self.rows_lay = QVBoxLayout(container)
+        self.rows_lay.setContentsMargins(0, 0, 0, 0)
+        self.rows_lay.setSpacing(6)
+        self.rows_lay.addStretch()
+        self.scroll.setWidget(container)
+        root.addWidget(self.scroll, 1)
+
+        self.empty_lab = QLabel("当前没有已忽略的组合。")
+        self.empty_lab.setAlignment(Qt.AlignCenter)
+        self.empty_lab.setWordWrap(True)
+        root.addWidget(self.empty_lab)
+
+        btn_row = QHBoxLayout()
+        self.restore_all_btn = QPushButton("恢复全部")
+        self.restore_all_btn.clicked.connect(self._restore_all)
+        btn_row.addWidget(self.restore_all_btn)
+        btn_row.addStretch()
+        close_btn = QPushButton("关闭")
+        close_btn.clicked.connect(self.accept)
+        btn_row.addWidget(close_btn)
+        root.addLayout(btn_row)
+
+        self._reload()
+
+    def _reload(self):
+        # 清旧行
+        while self.rows_lay.count() > 1:
+            item = self.rows_lay.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
+        self._rows.clear()
+
+        try:
+            pairs = sorted(load_ignored(self._work))
+        except Exception as e:
+            QMessageBox.warning(self, "读取失败", str(e))
+            pairs = []
+
+        for key in pairs:
+            anchor, variant = key
+            row = QFrame()
+            rl = QHBoxLayout(row)
+            rl.setContentsMargins(10, 6, 10, 6)
+            rl.setSpacing(8)
+            lab = QLabel(f"{anchor}　↔　{variant}")
+            rl.addWidget(lab, 1)
+            btn = QPushButton("恢复")
+            btn.clicked.connect(lambda _checked=False, k=key: self._restore_one(k))
+            rl.addWidget(btn)
+            self.rows_lay.insertWidget(self.rows_lay.count() - 1, row)
+            self._rows.append((key, row))
+
+        n = len(self._rows)
+        self.count_lab.setText(f"已忽略 {n} 组")
+        self.empty_lab.setVisible(n == 0)
+        self.scroll.setVisible(n > 0)
+        self.restore_all_btn.setEnabled(n > 0)
+
+    def _restore_one(self, key):
+        try:
+            remove_ignored(self._work, key[0], key[1])
+        except Exception as e:
+            QMessageBox.warning(self, "恢复失败", str(e))
+            return
+        self.restored.add(key)
+        self._reload()
+
+    def _restore_all(self):
+        n = len(self._rows)
+        if not n:
+            return
+        ret = QMessageBox.question(
+            self,
+            "恢复全部",
+            f"确定恢复全部 {n} 组已忽略的组合吗？\n"
+            "下次一致性检查会重新报告它们。",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if ret != QMessageBox.Yes:
+            return
+        try:
+            self.restored |= set(k for k, _ in self._rows)
+            clear_ignored(self._work)
+        except Exception as e:
+            QMessageBox.warning(self, "恢复失败", str(e))
+            return
+        self._reload()
+
+
 class ConsistencyDialog(QDialog):
     """一致性检查结果面板。"""
 
@@ -371,8 +499,7 @@ class ConsistencyDialog(QDialog):
                 "✓ 没有发现疑似同人不同名。\n\n"
                 "检查基于「人物卡」和「高频词 → 角色姓名」中的名字，\n"
                 "请确保你已经把主要角色录入了人物卡。\n\n"
-                "被忽略的组合可在作品目录的\n"
-                "consistency_ignored.json 里查看或删除。"
+                "之前忽略过的组合可点下方「管理已忽略」查看或恢复。"
             )
             empty.setAlignment(Qt.AlignCenter)
             empty.setObjectName("consEmpty")
@@ -423,13 +550,14 @@ class ConsistencyDialog(QDialog):
         root.addWidget(tip)
 
         btn_row = QHBoxLayout()
-        if self._pairs:
-            self.clear_ignored_btn = QPushButton("恢复所有已忽略")
-            self.clear_ignored_btn.setToolTip(
-                "把之前忽略的组合全部恢复，下次检查会重新报告"
+        if self._work is not None:
+            self.manage_ignored_btn = QPushButton()
+            self.manage_ignored_btn.setToolTip(
+                "查看所有已忽略的组合，可逐条恢复或全部恢复"
             )
-            self.clear_ignored_btn.clicked.connect(self._on_clear_ignored)
-            btn_row.addWidget(self.clear_ignored_btn)
+            self.manage_ignored_btn.clicked.connect(self._open_ignored_manager)
+            self._refresh_ignored_btn_label()
+            btn_row.addWidget(self.manage_ignored_btn)
         btn_row.addStretch()
         close_btn = QPushButton("关闭")
         close_btn.clicked.connect(self.accept)
@@ -449,27 +577,34 @@ class ConsistencyDialog(QDialog):
                 card.setVisible(False)
                 break
         self._update_summary()
+        self._refresh_ignored_btn_label()
 
-    def _on_clear_ignored(self):
-        if self._work is None:
-            return
-        ret = QMessageBox.question(
-            self,
-            "恢复所有已忽略",
-            "确定清除所有已忽略的组合吗？\n"
-            "下次一致性检查会重新报告这些组合。\n\n"
-            "注意：当前对话框里的卡片不会立即恢复，需要重新检查。",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-        if ret != QMessageBox.Yes:
+    def _refresh_ignored_btn_label(self):
+        """按当前忽略数量刷新按钮文案（忽略/恢复后调用）。"""
+        btn = getattr(self, "manage_ignored_btn", None)
+        if btn is None or self._work is None:
             return
         try:
-            clear_ignored(self._work)
-        except Exception as e:
-            QMessageBox.warning(self, "清除失败", str(e))
+            n = len(load_ignored(self._work))
+        except Exception:
+            n = 0
+        btn.setText(f"管理已忽略（{n}）" if n else "管理已忽略")
+
+    def _open_ignored_manager(self):
+        if self._work is None:
             return
-        QMessageBox.information(self, "完成", "已清除所有忽略记录。")
+        dlg = _IgnoredManagerDialog(self._work, self._theme, self)
+        dlg.exec()
+        if not dlg.restored:
+            return
+        # 恢复的组合若就在当前结果里（本会话刚忽略、卡片被隐藏），
+        # 直接重新显示，不用等下次检查。
+        for card in self._cards:
+            key = tuple(sorted([card._pair.anchor, card._pair.variant]))
+            if key in dlg.restored and not card.isVisible():
+                card.setVisible(True)
+        self._update_summary()
+        self._refresh_ignored_btn_label()
 
     def _update_summary(self):
         visible = sum(1 for c in self._cards if c.isVisible())

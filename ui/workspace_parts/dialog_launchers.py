@@ -266,8 +266,9 @@ class DialogLaunchersMixin:
             self.current_chapter_id).get("word_count", 0)
         self._update_titles()
         self._update_word_status()
-        self.save_state_label.setText(f"已拆分为新章节「{new_title}」")
-        QTimer.singleShot(2500, lambda: self.save_state_label.setText(""))
+        self.save_state_label.setText(
+            f"已拆分为新章节「{new_title}」· 在章节树按 Ctrl+Z 可撤销")
+        QTimer.singleShot(4000, lambda: self.save_state_label.setText(""))
 
     def _on_format_applied(self, affected: set):
         if self.current_chapter_id in affected:

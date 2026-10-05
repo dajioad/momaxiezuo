@@ -18,6 +18,7 @@
 
 import os
 import re
+import time
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -1799,24 +1800,72 @@ QToolButton#importMenuBtn::menu-button {{
         return {
             "order": [c["id"] for c in self.work.chapters],
             "volumes": {c["id"]: (c.get("volume") or "") for c in self.work.chapters},
+            "ts": time.time(),
         }
 
     def _undo_drag(self):
-        """Ctrl+Z：撤销上一次章节级操作（拖拽 / 合并）。
+        """Ctrl+Z：撤销上一次章节级操作（拖拽 / 拆分 / 合并）。
 
         只在章节树有焦点时生效（快捷键绑在 self.tree 上）。
-        优先级：先拖拽栈，后合并记录。都没有可撤销的时静默返回。
+        三种记录按**发生时间**取最新执行；旧实现固定优先级，
+        「合并 -> 拆分 -> 撤销」时会错误回退过期的合并记录，
+        把拆分出的新章内容冲掉、章节错位。
+        某条记录因状态变化失效时自动跳到下一条。
         """
         if self.work is None:
             return
-        # 1) 拖拽撤销栈优先
-        if self._drag_undo_stack:
-            self._undo_drag_impl()
-            return
-        # 2) 拖拽栈空：尝试撤销最近一次章节合并
-        if self._has_merge_undo() and self._undo_merge_impl():
-            return
-        # 3) 都没有：静默
+        # 最多三类各试一遍：失效的记录会被实现层作废并返回 False
+        for _ in range(3):
+            t_drag = (self._drag_undo_stack[-1].get("ts", 0.0)
+                      if self._drag_undo_stack else 0.0)
+            info_m = getattr(self.work, "_last_merge_undo", None)
+            t_merge = (info_m or {}).get("ts", 0.0) if info_m else 0.0
+            info_s = getattr(self.work, "_last_split_undo", None)
+            t_split = (info_s or {}).get("ts", 0.0) if info_s else 0.0
+
+            if t_split > 0 and t_split >= t_merge and t_split > t_drag:
+                if self._undo_split_impl():
+                    return
+                continue  # 拆分记录失效，重算其余候选
+            if t_merge > 0 and t_merge > t_drag:
+                if self._undo_merge_impl():
+                    return
+                continue  # 合并记录失效，重算其余候选
+            if t_drag > 0:
+                self._undo_drag_impl()
+                return
+            return  # 没有任何可撤销记录：静默
+
+    def _undo_split_impl(self) -> bool:
+        """撤销最近一次光标拆分（Ctrl+Z 候选之一）。
+
+        成功后：拆分出的新章被删除、原章原文还原，章节树选中原章
+        并滚动到可视区，通过 structure_changed 通知 workspace 重载。
+        """
+        if self.work is None:
+            return False
+        # work.undo_last_split 成功后会清空记录，先取出原章 id
+        info = getattr(self.work, "_last_split_undo", None) or {}
+        orig_id = str(info.get("orig_id", "") or "")
+
+        try:
+            ok = self.work.undo_last_split()
+        except Exception as e:
+            logger.error(f"撤销拆分失败: {e}", exc_info=True)
+            QMessageBox.warning(self, "撤销失败", f"无法撤销拆分：\n{e}")
+            return False
+        if not ok:
+            return False
+
+        self.refresh_tree()
+        if orig_id:
+            self.set_current_chapter(orig_id)
+            it = self._chapter_item(orig_id)
+            if it is not None:
+                self.tree.scrollToItem(it)
+        self.structure_changed.emit()
+        self.status_message.emit("已撤销拆分（新章已删除，原文已还原）")
+        return True
 
     def _has_merge_undo(self) -> bool:
         if self.work is None:

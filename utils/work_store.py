@@ -28,6 +28,7 @@
 import os
 import re
 import json
+import time
 import shutil
 import codecs
 from datetime import datetime
@@ -193,6 +194,10 @@ class Work:
         # 结构见 merge_chapter_into_previous 里的赋值。
         # 生命周期跟 Work 实例一致：切换作品换 Work 对象，自然清空。
         self._last_merge_undo = None
+        # 撤销拆分栈：只保留最近一次「光标拆分」的信息（Ctrl+Z 撤一条）。
+        # 与合并撤销互斥：任何一方发生后另一方的记录作废，否则在已被
+        # 改动的章节上回退会造成内容重复/错位（合并->拆分->撤销的事故根因）。
+        self._last_split_undo = None
         # 高频小 JSON（词库/人物卡）按 mtime 的读缓存：
         # {path: (mtime, raw_obj)}。高亮定时器每 800ms 读 3 个文件，
         # 未改动时全靠缓存零反序列化；保存走 os.replace 换新 inode、
@@ -706,7 +711,10 @@ class Work:
             "cur_index": cur_index,
             "cur_chapter": dict(c),                       # 元数据副本
             "cur_text": cur_text_full,                    # 原始（含末尾换行）
+            "ts": time.time(),                            # 用于多种撤销按时间取最新
         }
+        # 合并会删章，之前的拆分撤销目标可能已不存在，作废
+        self._last_split_undo = None
 
         # 写回前章
         self.write_chapter(prev_id, merged + "\n" if merged else "")
@@ -816,7 +824,50 @@ class Work:
         if new_idx > cur_idx + 1:
             self.move_chapter(new_ch["id"], cur_idx + 1)
 
+        # 记录拆分撤销：Ctrl+Z 时把整段原文写回原章并删掉新章。
+        # 同时作废旧的合并撤销——原章内容已被拆分改写，再回退合并
+        # 会造成内容重复、章节错位（合并->拆分->撤销事故的根因）。
+        self._last_split_undo = {
+            "orig_id": chapter_id,
+            "orig_text": text,                # 拆分前完整原文
+            "new_id": new_ch["id"],
+            "ts": time.time(),
+        }
+        self._last_merge_undo = None
+
         return new_ch
+
+    def has_split_undo(self) -> bool:
+        """是否存在可撤销的拆分。"""
+        return bool(getattr(self, "_last_split_undo", None))
+
+    def undo_last_split(self) -> bool:
+        """撤销最近一次 split_chapter。
+
+        把拆分前原文写回原章、彻底删除拆分出的新章。
+        返回 True 表示成功；False 表示无记录或状态已变（原章/新章
+        被手动删除），此时记录作废。
+        """
+        info = getattr(self, "_last_split_undo", None)
+        if not info:
+            return False
+        orig_id = info["orig_id"]
+        new_id = info["new_id"]
+
+        if self.get_chapter(orig_id) is None:
+            logger.warning(f"撤销拆分失败：原章 {orig_id} 已被删除")
+            self._last_split_undo = None
+            return False
+        if self.get_chapter(new_id) is None:
+            logger.warning(f"撤销拆分失败：拆分新章 {new_id} 已被删除")
+            self._last_split_undo = None
+            return False
+
+        self.write_chapter(orig_id, info["orig_text"])
+        self.permanently_delete_chapter(new_id)
+        self._last_split_undo = None
+        logger.info(f"已撤销拆分：{new_id} 并回 {orig_id}")
+        return True
 
     def rename_chapters_batch(self, renames: dict) -> int:
         """批量重命名章节，只写一次盘。
