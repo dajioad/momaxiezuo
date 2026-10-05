@@ -1,4 +1,8 @@
-﻿# release.ps1 - 墨码写作一键发版
+# release.ps1 - 墨码写作一键发版
+#
+# [已废弃 2026-10] 本脚本依赖自有服务器 39.96.64.137（上传 + 远程签名），
+# 服务器下线后不可再用。请改用图形化的 Gitee 版发版工具：
+#   双击「启动发版工具.bat」（release_gui.py）
 param(
     [Parameter(Mandatory=$true)][string]$Version,
     [string]$Notes = "",
