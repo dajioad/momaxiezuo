@@ -118,8 +118,13 @@ def _iter_all_macs():
     try:
         text = ""
         if os.name == "nt":
-            raw = subprocess.run(["ipconfig", "/all"],
-                                 capture_output=True, timeout=6).stdout
+            # CREATE_NO_WINDOW：windowed 打包下直接跑 ipconfig 会闪一个
+            # cmd 黑窗（启动解密 AI 配置枚举 MAC 时必现）。
+            raw = subprocess.run(
+                ["ipconfig", "/all"],
+                capture_output=True, timeout=6,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            ).stdout
             for enc in ("gbk", "utf-8", "mbcs"):
                 try:
                     text = raw.decode(enc)
