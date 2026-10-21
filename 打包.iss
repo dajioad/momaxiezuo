@@ -16,7 +16,7 @@
 
 ; ---- 版本信息（发新版时改这里）----
 #define MyAppName        "墨码写作"
-#define MyAppVersion     "1.0.3"
+#define MyAppVersion     "1.0.4"
 #define MyAppPublisher   "墨码写作开发者"
 #define MyAppURL         "https://gitee.com/momaxiezuo/ink-code-writing"
 #define MyAppExeName     "墨码写作.exe"
