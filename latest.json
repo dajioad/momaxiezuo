@@ -1,10 +1,10 @@
 {
-  "version": "1.0.4",
-  "pub_date": "2026-10-21",
-  "notes": "1更新桌宠为蓝色大肥鱼\n2质量新增AI味儿检测功能\n3布局优化",
+  "version": "1.0.1",
+  "pub_date": "2026-10-26",
+  "notes": "GitHub 首版发布",
   "min_supported": "1.0.0",
-  "download_url": "https://gitee.com/momaxiezuo/ink-code-writing/releases/download/1.0.4/update.zip",
-  "download_page": "https://gitee.com/momaxiezuo/ink-code-writing/releases",
-  "sha256": "ac45df5ddf77c67962afce74163148109062497e81ae04d73bf819f535ab1d0a",
-  "signature": "dMksGeGOzCCQXkSFWNvUwbPGN6L1ypxFQnyBrrKrLVmnehFL+YMT7dfTew0SuzMeW/pYVLMbdO9H/ERX/ECOnvSTcYYeG7o7M0EzpXVyWHR0tgwaOQEuvvZne4llnREJ/iGazBHCFo86PRXQcgz9ALmR4ciR3np8y0Ze1wp/oMcEwdfN5wj01rDSw596c5FswcLzZHRjQB8dRh963GwkwEz5Lz3qLFqXvJ+/NQrL8ddN8nB0eP3BT+r8US+W1h8NDeVf7gKkjDjFdJVmcB5KjljMHnHtsS9zQwqWknx+ndNtZlMFg/3OrtbRUODk9l2MlZD5LG+2LS64cFYzDrcZxA=="
+  "download_url": "https://github.com/dajioad/momaxiezuo/releases/download/v1.0.1/update.zip",
+  "download_page": "https://github.com/dajioad/momaxiezuo/releases",
+  "sha256": "",
+  "signature": ""
 }

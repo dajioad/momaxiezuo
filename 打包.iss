@@ -16,9 +16,9 @@
 
 ; ---- 版本信息（发新版时改这里）----
 #define MyAppName        "墨码写作"
-#define MyAppVersion     "1.0.4"
+#define MyAppVersion     "1.0.1"
 #define MyAppPublisher   "墨码写作开发者"
-#define MyAppURL         "https://gitee.com/momaxiezuo/ink-code-writing"
+#define MyAppURL         "https://github.com/dajioad/momaxiezuo"
 #define MyAppExeName     "墨码写作.exe"
 #define MyAppId          "{{8A3F2C1E-7B4D-4E9A-9C5F-3D2E1B8A6C4F}"
 #define MySourceDir      "dist\墨码写作"
