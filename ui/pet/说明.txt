@@ -1,25 +1,13 @@
-├── idle.png          待机（必须）
-├── idle_blink.png    待机眨眼（可选，没有就用 idle 顶）
-├── writing.png       写作中（可选）
-├── thinking.png      AI 请求中（可选）
-├── happy.png         完成一章（可选）
-├── sleepy.png        困了 / 深夜（可选）
-├── excited.png       里程碑（可选）
-├── shy.png           被夸了（可选）
-└── love.png          特殊成就（可选）
-有几张用几张，没图片的状态自动回落到手绘 Q 版。
+桌宠素材目录。当前唯一服装为蓝鲸大肥鱼（whale/）。
 
-素材放置支持两种方式：
-A. 单图服装：直接放一张 ui/pet/{服装名}.png（如 school.png、pink.png），
-   所有状态共用这张立绘。换装菜单里的服装名在 ui/pet_float.py 的 OUTFIT_DEFS。
-B. 多状态整套：建 ui/pet/{服装名}/ 目录，按上面的状态名放多张 PNG；
-   动作序列帧放 ui/pet/{服装名}/{动作}/frame_00.png …。
+whale/ 目录结构：
+├── idle.png / happy.png / sleepy.png / thinking.png / writing.png
+├── excited.png / shy.png / love.png / proud.png / worried.png / surprised.png
+│   （各状态首帧，作为基础状态图）
+└── {动作}/  （动作序列帧）
+    ├── frame_00.png … frame_NN.png
+    └── _durations.json   （每帧时长，毫秒）
 
-图片规格
-尺寸：512×512 或 1024×1024（代码会自动缩到 34px，大图 Retina 下更清晰）
+支持的动作：idle / eating / drinking / pet_head / cleaning / playing / sleeping
 
-格式：PNG，透明背景
-
-构图：所有状态同一角色、同一角度、同一比例——只有表情/姿势不同
-
-留白：角色不要顶到画布边缘，四周留 10% 空白
+换装菜单在 ui/pet_float.py 的 OUTFIT_DEFS。

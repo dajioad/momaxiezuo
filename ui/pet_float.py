@@ -68,12 +68,9 @@ QUICK_ACTIONS = [
 
 # 可换装列表：(outfit 目录名, 菜单文案)。
 # 立绘放 ui/pet/{outfit}/ 目录，缺素材时自动回退默认外观。
-DEFAULT_OUTFIT = "hanfu"
+DEFAULT_OUTFIT = "whale"
 OUTFIT_DEFS = [
-    (DEFAULT_OUTFIT, "墨韵（默认）"),
-    ("school", "校园"),
-    ("festival_qixi", "七夕"),
-    ("pink", "浅粉"),
+    (DEFAULT_OUTFIT, "蓝鲸大肥鱼（默认）"),
 ]
 OUTFIT_KEYS = {key for key, _label in OUTFIT_DEFS}
 
@@ -116,6 +113,21 @@ class _PetFace(QWidget):
     _BASE_STATES = frozenset({
         STATE_IDLE, STATE_WRITING, STATE_THINKING, STATE_SLEEPY,
     })
+
+    # 所有状态 → 蓝鲸动画 key（进入状态时自动播放）
+    _STATE_ANIM_KEYS = {
+        STATE_IDLE:     "idle",
+        STATE_WRITING:  "work_typing",
+        STATE_THINKING: "work_thinking",
+        STATE_SLEEPY:   "daily_sleep",
+        STATE_HAPPY:    "click_happy",
+        STATE_EXCITED:  "fun_jump",
+        STATE_SHY:      "click_shy",
+        STATE_LOVE:     "daily_curtsy",
+        STATE_SURPRISED: "surprised",
+        STATE_PROUD:    "work_celebrate",
+        STATE_WORRIED:  "work_stressed",
+    }
 
     _STATE_FALLBACK = {
         STATE_SURPRISED: (STATE_EXCITED, STATE_HAPPY),
@@ -198,6 +210,8 @@ class _PetFace(QWidget):
         self._anim_frames = []       # [(pix, ms), ...]
         self._anim_index = 0
         self._anim_key = ""          # 正在播的动画 key（空 = 无动画）
+        self._anim_loop = True       # True=循环, False=播完即停
+        self._anim_is_action = False # True=动作动画，False=基础状态循环
         self._frame_timer = QTimer(self)
         self._frame_timer.setSingleShot(True)
         self._frame_timer.timeout.connect(self._advance_frame)
@@ -311,6 +325,9 @@ class _PetFace(QWidget):
 
         self.setMouseTracking(True)
 
+        # 启动后播放 idle 循环动画（_apply_state 因状态未变不会触发）
+        QTimer.singleShot(0, lambda: self._play_state_anim(self.STATE_IDLE))
+
     def _load_pixmaps(self, outfit: str = DEFAULT_OUTFIT):
         """加载指定服装的图片。支持三种素材布局，按优先级：
 
@@ -403,12 +420,15 @@ class _PetFace(QWidget):
 
 
     def play_anim(self, anim_key: str, fallback_state: str = "",
-                  frames=None):
+                  frames=None, loop: bool = True, is_action: bool = True):
         """播放序列帧动画。找不到素材时退回静态状态。
 
         frames 可由调用方预先 load_frames 后传入（action_started 需要
         先判断"是否真动画"再决定走帧还是程序化补偿），避免一次动作
         重复加载/解码同一套帧。
+
+        loop=True 循环播放（待机等持续动画）；loop=False 播一遍后自动停。
+        is_action=True 表示这是动作动画，结束后会自动回到基础状态动画。
         """
         if not anim_key:
             return
@@ -424,18 +444,49 @@ class _PetFace(QWidget):
         self._anim_frames = frames
         self._anim_key = anim_key
         self._anim_index = 0
+        self._anim_loop = loop
+        self._anim_is_action = is_action
         self.update()
         self._schedule_next_frame()
 
+    def play_anim_once(self, anim_key: str, **kwargs):
+        """播一遍就停的便捷方法。"""
+        self.play_anim(anim_key, loop=False, **kwargs)
+
     def stop_anim(self, fallback_state: str = ""):
-        """停止动画。"""
+        """停止动画。如果是动作动画，自动恢复当前状态的循环动画。"""
+        was_action = self._anim_is_action
         self._frame_timer.stop()
         self._anim_frames = []
         self._anim_key = ""
         self._anim_index = 0
+        self._anim_is_action = False
+        self._anim_loop = True
         if fallback_state:
             self.set_state(fallback_state)
+        elif was_action:
+            # 动作结束 → 回到当前状态的循环动画
+            self._play_state_anim(self._state or self.STATE_IDLE)
         self.update()
+
+    def _play_state_anim(self, state: str):
+        """播放状态对应的循环动画（若素材存在且未被动作动画覆盖）。"""
+        if self._anim_is_action and self._anim_frames:
+            return
+        anim_key = self._STATE_ANIM_KEYS.get(state)
+        if not anim_key:
+            return
+        here = os.path.dirname(os.path.abspath(__file__))
+        pet_root = os.path.join(here, "pet")
+        frames = load_frames(pet_root, self._outfit, anim_key)
+        if frames:
+            self._anim_frames = frames
+            self._anim_key = anim_key
+            self._anim_index = 0
+            self._anim_loop = True
+            self._anim_is_action = False
+            self.update()
+            self._schedule_next_frame()
 
     # ---------- 程序化动作（无素材时的动作补偿） ----------
     # 素材补齐之前，用位移/旋转/压缩曲线让动作"看得出来"；
@@ -522,7 +573,14 @@ class _PetFace(QWidget):
     def _advance_frame(self):
         if not self._anim_frames:
             return
-        self._anim_index = (self._anim_index + 1) % len(self._anim_frames)
+        if not self._anim_loop:
+            # 非循环：播完最后一帧就停
+            if self._anim_index >= len(self._anim_frames) - 1:
+                self.stop_anim()
+                return
+            self._anim_index += 1
+        else:
+            self._anim_index = (self._anim_index + 1) % len(self._anim_frames)
         self.update()
         self._schedule_next_frame()
 
@@ -591,6 +649,8 @@ class _PetFace(QWidget):
         self._prev_state = self._state
         self._transition_t = 0.0
         self._state = state
+        # 进入新状态时自动播放对应循环动画（动作动画进行中不打断）
+        self._play_state_anim(state)
 
     # ---------- 外部接口 ----------
 
@@ -1744,6 +1804,9 @@ class _PetFloat(QWidget):
             if self._face is not None:
                 try:
                     self._face.set_carried(True, 0.0)
+                    # 播拖拽动画
+                    from .pet_system import whale_pool
+                    self._face.play_anim(whale_pool.pick_drag(), loop=True, is_action=True)
                 except RuntimeError:
                     pass
 
@@ -1782,6 +1845,8 @@ class _PetFloat(QWidget):
                 if self._face is not None:
                     try:
                         self._face.set_carried(False)
+                        # 停拖拽动画，回到当前状态循环
+                        self._face.stop_anim()
                     except RuntimeError:
                         pass
                 self._save_position()
@@ -2436,6 +2501,9 @@ class _PetFloat(QWidget):
         "bubble_requested",
         "sleep_changed",
         "roam_pulse",
+        "work_status",
+        "whisper",
+        "balance",
     )
 
     def set_brain(self, brain):
@@ -2464,6 +2532,9 @@ class _PetFloat(QWidget):
             ("bubble_requested", self._on_brain_bubble),
             ("sleep_changed", self._on_brain_sleep_changed),
             ("roam_pulse", self._on_roam_pulse),
+            ("work_status", self._on_brain_work_status),
+            ("whisper", self._on_brain_whisper),
+            ("balance", self._on_brain_balance),
         ):
             try:
                 getattr(brain, sig_name).connect(slot)
@@ -2498,14 +2569,21 @@ class _PetFloat(QWidget):
                 "clean": self._face.STATE_SHY,
                 "play":  self._face.STATE_EXCITED,
                 "sleep": self._face.STATE_SLEEPY,
+                "whisper": self._face.STATE_IDLE,
+                "balance": self._face.STATE_HAPPY,
+                "random": self._face.STATE_IDLE,
             }.get(action_key, "")
 
             # 动作时长（与 actions.py 保持一致，程序化动作要跟它等长）
             try:
                 from ui.pet_system.actions import ACTIONS as _A
-                duration_ms = int(_A.get(action_key).duration_ms or 3000)
+                act = _A.get(action_key)
+                duration_ms = int(act.duration_ms or 3000) if act else 3000
             except Exception:
                 duration_ms = 3000
+
+            # 瞬态动作（碎碎念/余额/随机）播一次就停，不进持续动作队列
+            transient = action_key in ("whisper", "balance", "random")
 
             frames = load_frames(
                 self._anim_root(), self._face._outfit, anim_key)
@@ -2516,7 +2594,8 @@ class _PetFloat(QWidget):
             self._face.stop_procedural()
             if animated:
                 self._face.play_anim(
-                    anim_key, fallback_state=fallback, frames=frames)
+                    anim_key, fallback_state=fallback, frames=frames,
+                    loop=not transient, is_action=not transient)
             elif action_key != "sleep":
                 # sleep 由 sleep_changed 切 sleepy base 状态，不做蹦跳
                 self._face.start_procedural(anim_key, duration_ms)
@@ -2567,6 +2646,23 @@ class _PetFloat(QWidget):
                 else self._face.STATE_IDLE)
         except Exception:
             pass
+
+    def _on_brain_work_status(self, level: int):
+        """工作状态变化 → 播对应工作动画。"""
+        if self._face is None:
+            return
+        from .pet_system import whale_pool
+        anim_key = whale_pool.pick_work_status(level)
+        self._face.play_anim_once(anim_key)
+
+    def _on_brain_whisper(self, text: str):
+        """碎碎念 → 气泡（动画由 action_started 触发）。"""
+        if text:
+            self.say(text, duration_ms=4000)
+
+    def _on_brain_balance(self, level: int):
+        """余额变化（动画由 action_started 触发）。"""
+        pass
 
     def _on_brain_state_changed(self):
         """状态变化时的钩子（当前无额外动作）。

@@ -25,6 +25,7 @@ from PySide6.QtCore import QObject, QTimer, Signal
 from utils.logger import get_logger
 from .actions import ACTIONS, Action
 from .state import PetState
+from . import whale_pool
 from . import constants as C
 from .persistence import load_state, save_state
 
@@ -52,6 +53,12 @@ class PetBrain(QObject):
     # 自主漫游时机到了（展示层决定怎么动）：
     # 用户在看但没在打字（阅读/思考）时，墨灵会自己溜达、发呆
     roam_pulse = Signal()
+    # 工作状态变化（0=空闲 .. 5=庆祝），展示层播对应动画
+    work_status = Signal(int)
+    # 碎碎念请求（展示层播碎碎念动画 + 气泡）
+    whisper = Signal(str)
+    # 余额变化（0=破产 .. 5=满溢）
+    balance = Signal(int)
 
     # 用户安静多久后允许自主漫游（秒）
     ROAM_IDLE_GRACE = 45.0
@@ -92,6 +99,12 @@ class PetBrain(QObject):
 
         # 上次 emit state_changed 的整数量，用于节流
         self._last_emit_key = None
+
+        # 上次播放的动画 key（随机抽时尽量不重复）
+        self._last_anim: Optional[str] = None
+
+        # 工作状态档位 0..5
+        self._work_level = 0
 
         # 未持久化的脏标记 + tick 计数
         self._dirty = False
@@ -163,6 +176,37 @@ class PetBrain(QObject):
             self._dirty = True
         except Exception as e:
             logger.warning(f"写作亲密度奖励失败: {e}")
+        # 码字 → 工作状态升到"忙碌"
+        self.set_work_level(2)
+
+    def set_work_level(self, level: int):
+        """设置工作状态档位 0..5 并通知展示层。"""
+        level = max(0, min(5, int(level)))
+        if level != self._work_level:
+            self._work_level = level
+            self.work_status.emit(level)
+
+    def emit_whisper(self, text: str = ""):
+        """触发碎碎念（展示层播动画 + 气泡）。"""
+        anim_key = whale_pool.pick_whisper(self._last_anim)
+        self._last_anim = anim_key
+        self.whisper.emit(text or "")
+        self.action_started.emit("whisper", anim_key)
+
+    def emit_balance(self, level: int):
+        """触发余额动画（0=破产 .. 5=满溢）。"""
+        anim_key = whale_pool.pick_balance(level)
+        self._last_anim = anim_key
+        self.balance.emit(level)
+        self.action_started.emit("balance", anim_key)
+
+    def emit_random_action(self):
+        """空闲时随机播一个动作（趣味/游戏/音乐等）。"""
+        if self._current_action is not None or self._sleeping:
+            return
+        anim_key = whale_pool.pick_action(self._last_anim)
+        self._last_anim = anim_key
+        self.action_started.emit("random", anim_key)
 
     def start_sleep(self, duration_sec: float = _SLEEP_DEFAULT_SEC):
         """进入睡眠状态。"""
@@ -173,7 +217,9 @@ class PetBrain(QObject):
         self._sleep_duration = max(5.0, float(duration_sec))
         self._current_action = ACTIONS["sleep"]
         self._state.touch_interact()
-        self.action_started.emit("sleep", "sleeping")
+        anim_key = whale_pool.anim_for_action("sleep", self._last_anim)
+        self._last_anim = anim_key
+        self.action_started.emit("sleep", anim_key)
         self.bubble_requested.emit(random.choice(
             ACTIONS["sleep"].bubbles or ["Zzz…"]))
         self.sleep_changed.emit(True)
@@ -291,7 +337,9 @@ class PetBrain(QObject):
 
         self._current_action = act
         self._state.touch_interact()
-        self.action_started.emit(act.key, act.anim_key)
+        anim_key = whale_pool.anim_for_action(act.key, self._last_anim)
+        self._last_anim = anim_key
+        self.action_started.emit(act.key, anim_key)
         if act.bubbles:
             self.bubble_requested.emit(random.choice(act.bubbles))
 

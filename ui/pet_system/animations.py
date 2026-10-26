@@ -26,7 +26,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
 
-_FRAME_RE = re.compile(r"^frame_(\d+)\.png$", re.IGNORECASE)
+_FRAME_RE = re.compile(r"^frame_(\d+)\.(png|webp)$", re.IGNORECASE)
 # 每帧显示时长（毫秒）。
 # 100ms × 10 帧 = 1 秒循环（偏快）
 # 180ms × 10 帧 = 1.8 秒循环（吃鱼慢慢嚼）
@@ -41,13 +41,22 @@ _FRAME_CACHE_MAX = 24
 
 
 def find_anim_dir(pet_root: str, outfit: str, anim_key: str) -> str:
-    """定位动画目录。返回空串表示找不到。"""
+    """定位动画目录。返回空串表示找不到。
+
+    查找顺序：
+    1. {pet_root}/{outfit}/{anim_key}/       （旧布局，动作帧）
+    2. {pet_root}/{outfit}/anims/{anim_key}/ （蓝鲸动画池）
+    3. {pet_root}/{anim_key}/                （平铺布局）
+    """
     if not pet_root or not anim_key:
         return ""
     if outfit:
         d = os.path.join(pet_root, outfit, anim_key)
         if os.path.isdir(d):
             return d
+        d2 = os.path.join(pet_root, outfit, "anims", anim_key)
+        if os.path.isdir(d2):
+            return d2
     d = os.path.join(pet_root, anim_key)
     if os.path.isdir(d):
         return d
@@ -87,13 +96,47 @@ def load_frames(pet_root: str, outfit: str, anim_key: str,
             frame_files.append((int(m.group(1)), name))
     if frame_files:
         frame_files.sort()
+
+        # 读 _durations.json（抽帧脚本会生成）
+        durations = []
+        _dur_path = os.path.join(d, "_durations.json")
+        if os.path.isfile(_dur_path):
+            try:
+                import json as _json
+                with open(_dur_path, "r", encoding="utf-8") as f:
+                    _d = _json.load(f)
+                if isinstance(_d, list):
+                    durations = [int(x) for x in _d]
+                elif isinstance(_d, dict) and "durations" in _d:
+                    durations = [int(x) for x in _d["durations"]]
+            except Exception:
+                pass
+
         frames = []
-        for _, name in frame_files:
-            pix = QPixmap(os.path.join(d, name))
+        for idx, (_, name) in enumerate(frame_files):
+            path = os.path.join(d, name)
+            lower = name.lower()
+            if lower.endswith(".webp"):
+                # Qt 的 WebP 解码器不稳定，用 PIL 读了再转 PNG bytes
+                try:
+                    from PIL import Image as _PILImage
+                    from io import BytesIO as _BytesIO
+                    img = _PILImage.open(path).convert("RGBA")
+                    buf = _BytesIO()
+                    img.save(buf, "PNG")
+                    buf.seek(0)
+                    pix = QPixmap()
+                    pix.loadFromData(buf.getvalue(), "PNG")
+                except Exception:
+                    pix = QPixmap(path)
+            else:
+                pix = QPixmap(path)
             if pix.isNull():
                 continue
-            frames.append(
-                (_scale_to_fit(pix, max_size), _DEFAULT_FRAME_MS))
+            ms = durations[idx] if idx < len(durations) else _DEFAULT_FRAME_MS
+            if ms <= 0:
+                ms = _DEFAULT_FRAME_MS
+            frames.append((_scale_to_fit(pix, max_size), ms))
         if frames:
             _put_frame_cache(cache_key, frames)
         return frames
