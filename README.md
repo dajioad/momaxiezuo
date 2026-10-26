@@ -166,7 +166,7 @@
 
 ### 从发布版安装（推荐）
 
-1. 前往 [Releases](https://gitee.com/momaxiezuo/ink-code-writing/releases) 页面
+1. 前往 [Releases](https://github.com/dajioad/momaxiezuo/releases)页面
 2. 下载最新的 `墨码写作-x.x.x.zip`
 3. 解压到任意目录，双击 `墨码写作.exe` 即可运行
 4. **无需安装，无需管理员权限**
